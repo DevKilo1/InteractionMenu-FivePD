@@ -561,6 +561,24 @@ namespace FivePD_HostageScenarioCallout
                 await BaseScript.Delay(100);
         }
 
+        public static Vehicle GetClosestVehicle(Vector3 pos, float maxDistance = 20f, bool ignoreOccupied = true)
+        {
+            Vehicle[] allVehicles = World.GetAllVehicles();
+            Vehicle closest = null;
+            foreach (var v in allVehicles)
+            {
+                if (v == null || !v.Exists()) continue;
+                if (v.Position.DistanceTo(pos) > maxDistance) continue;
+                if (ignoreOccupied && v.Occupants == null || ignoreOccupied && v.Occupants.Length <= 0) continue;
+                if (closest == null)
+                    closest = v;
+                if (v.Position.DistanceTo(pos) < closest.Position.DistanceTo(pos))
+                    closest = v;
+            }
+
+            return closest;
+        }
+
         public static Ped GetClosestPed(Vector3 pos, float maxDistance = 20f, bool ignoreVehicles = false, bool findAlive = true, bool findPlayers = false)
         {
             Ped[] allPeds = World.GetAllPeds();
@@ -905,7 +923,7 @@ namespace FivePD_HostageScenarioCallout
         public static async Task KeepTaskEnterVehicle(Ped ped, Vehicle veh, VehicleSeat targetSeat)
         {
             SetIntoVehicleAfterTimer(ped, veh, VehicleSeat.Any, 30000);
-            while (true)
+            while (!ped.IsSittingInVehicle(veh) || ped.SeatIndex != targetSeat)
             {
                 Vector3 startPos = ped.Position;
                 await BaseScript.Delay(2500);
@@ -1103,7 +1121,6 @@ namespace FivePD_HostageScenarioCallout
         public static void KeepTask(Ped ped)
         {
             if (ped == null || !ped.Exists()) return;
-            ped.IsPersistent = true;
             ped.AlwaysKeepTask = true;
             ped.BlockPermanentEvents = true;
         }

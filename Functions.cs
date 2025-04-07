@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CitizenFX.Core;
 using FivePD_HostageScenarioCallout;
 using MenuAPI;
@@ -28,4 +29,23 @@ public class Functions
             return validBool;
         }
     }
+
+    public static async Task<bool> SeatPedInVehicle(Ped ped, Vehicle vehicle, VehicleSeat seat, bool teleportIn = false)
+    {
+        bool result = false;
+        if (ped == null || vehicle == null) return false;
+
+        if (teleportIn)
+            ped.SetIntoVehicle(vehicle, seat);
+        else
+        {
+            ped.Task.EnterVehicle(vehicle, seat);
+            await Utils.KeepTaskEnterVehicle(ped, vehicle, seat);
+        }
+
+        if (ped.IsSittingInVehicle(vehicle) && ped.SeatIndex == seat)
+            result = true;
+
+        return result;
+    } 
 }

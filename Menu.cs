@@ -32,14 +32,14 @@ public class MenuHandler : BaseScript
         };
         MenuItem[] mainMenu = new[]
         {
-            new MenuItem("~o~CME", "Commercial Vehicle Enforcement"), // Leads to CME Menu //
-            new MenuItem("~f~Interaction") // Leads to Ped Interaction Menu // 
+            new MenuItem("~o~CME", "[Menu] Commercial Vehicle Enforcement"), // Leads to CME Menu //
+            new MenuItem("~f~Interaction", "[Menu]") // Leads to Ped Interaction Menu // 
         };
 
         MenuItem[] CMEMenu = new[]
         {
             new MenuItem("Check logbook"), // Random boolean (saves)
-            new MenuItem("~y~? Enforcement tab ?"), // Circle back with client
+            new MenuItem("~y~? Enforcement tab ?", "[Menu]"), // Circle back with client
         };
 
         MenuItem[] CMEEnforcementMenu = new[]
@@ -49,12 +49,12 @@ public class MenuHandler : BaseScript
 
         MenuItem[] PedInteractionMenu = new[]
         {
-            new MenuItem("~f~Perform a test", "Sobriety Tests"), // Leads to sobriety menu
+            new MenuItem("~f~Perform a test", "[Menu] Sobriety Tests"), // Leads to sobriety menu
             new MenuItem("~g~Grab ped"),
             new MenuItem("~g~Follow"),
-            new MenuItem("~g~Seat ped in vehicle"), // Leads to vehicle seats menu and switches with "Unseat ped"
+            new MenuItem("~f~Seat ped in vehicle", "[Menu]"), // Leads to vehicle seats menu and switches with "Unseat ped"
             //new MenuItem("Unseat ped"), // Leads to vehicle occupants menu
-            new MenuItem("~f~Vehicle search")
+            new MenuItem("~f~Vehicle search", "[Menu]")
         };
         MenuItem[] VehicleSeatsMenu = new[]
         {
@@ -85,31 +85,12 @@ public class MenuHandler : BaseScript
         {
             _CMEMenu.AddMenuItem(menuItem);
         }
-
-        _CMEMenu.OnItemSelect += (menu, item, index) =>
-        {
-            switch (item.Text)
-            {
-                case "Check logbook":
-                {
-                    Functions.CheckLogbook(menu, item, index, targetPed);
-                    break;
-                }
-            }
-        };
         MenuController.AddSubmenu(_CMEMenu, _CMEEnforcementMenu);
         MenuController.BindMenuItem(_CMEMenu, _CMEEnforcementMenu, CMEMenu[1]);
         foreach (var menuItem in CMEEnforcementMenu)
         {
             _CMEEnforcementMenu.AddMenuItem(menuItem);
         }
-
-        _CMEEnforcementMenu.OnItemSelect += (menu, item, index) =>
-        {
-            switch (item.Text)
-            {
-            }
-        };
 
         MenuController.AddSubmenu(_menu, _PedInteractionMenu);
         MenuController.BindMenuItem(_menu, _PedInteractionMenu, mainMenu[1]);
@@ -126,10 +107,103 @@ public class MenuHandler : BaseScript
         }
 
         MenuController.AddSubmenu(_PedInteractionMenu, _VehicleSeatsMenu);
-        MenuController.BindMenuItem(_PedInteractionMenu, _VehicleSeatsMenu, PedInteractionMenu[1]);
+        MenuController.BindMenuItem(_PedInteractionMenu, _VehicleSeatsMenu, PedInteractionMenu[3]);
         foreach (var menuItem in VehicleSeatsMenu)
         {
             _VehicleSeatsMenu.AddMenuItem(menuItem);
+        }
+        
+        Debug.WriteLine("Check1");
+        foreach (var menu in MenuController.Menus)
+        {
+            menu.OnItemSelect += async (menu, item, index) =>
+            {
+                if (menu == null) return;
+                if (item == null) return;
+                if (item.Description != null && item.Description.Contains("[Menu]") && item.Description != "") return;
+                Debug.WriteLine("Gonna do it "+item.Label);
+                if (menu == _CMEMenu)
+                {
+                    switch (item.Text)
+                    {
+                        case "Check logbook":
+                        {
+                            Functions.CheckLogbook(menu, item, index, targetPed);
+                            break;
+                        }
+                        default:
+                        {
+                            Utils.ShowNetworkedNotification("~p~This feature is not yet implemented!","Error","~m~NotImplementedException");
+                            break;
+                        }
+                    }
+                }
+                else if (menu == _VehicleSeatsMenu)
+                {
+                    switch (item.Text)
+                    {
+                        case "Front Driver":
+                        {
+                            VehicleSeat seat = VehicleSeat.Driver;
+                            Vehicle vehicle = Utils.GetClosestVehicle(Game.PlayerPed.Position, 5f, false);
+                            await Utils.CaptureEntity(targetPed);
+                            targetPed.Task.ClearAllImmediately();
+                            await BaseScript.Delay(100);
+                            targetPed.Task.ClearAllImmediately();
+                            await Functions.SeatPedInVehicle(targetPed, vehicle, seat);
+                            await Utils.WaitUntilPedIsInVehicle(targetPed, vehicle, seat);
+                            break;
+                        }
+                        case "Front Passenger":
+                        {
+                            VehicleSeat seat = VehicleSeat.RightFront;
+                            Vehicle vehicle = Utils.GetClosestVehicle(Game.PlayerPed.Position, 5f, false);
+                            await Utils.CaptureEntity(targetPed);
+                            targetPed.Task.ClearAllImmediately();
+                            await BaseScript.Delay(100);
+                            targetPed.Task.ClearAllImmediately();
+                            await Functions.SeatPedInVehicle(targetPed, vehicle, seat);
+                            await Utils.WaitUntilPedIsInVehicle(targetPed, vehicle, seat);
+                            break;
+                        }
+                        case "Left Rear":
+                        {
+                            VehicleSeat seat = VehicleSeat.LeftRear;
+                            Vehicle vehicle = Utils.GetClosestVehicle(Game.PlayerPed.Position, 5f, false);
+                            await Utils.CaptureEntity(targetPed);
+                            targetPed.Task.ClearAllImmediately();
+                            await BaseScript.Delay(100);
+                            targetPed.Task.ClearAllImmediately();
+                            await Functions.SeatPedInVehicle(targetPed, vehicle, seat);
+                            await Utils.WaitUntilPedIsInVehicle(targetPed, vehicle, seat);
+                            break;
+                        }
+                        case "Right Rear":
+                        {
+                            VehicleSeat seat = VehicleSeat.RightRear;
+                            Vehicle vehicle = Utils.GetClosestVehicle(Game.PlayerPed.Position, 5f, false);
+                            await Utils.CaptureEntity(targetPed);
+                            targetPed.Task.ClearAllImmediately();
+                            await BaseScript.Delay(100);
+                            targetPed.Task.ClearAllImmediately();
+                            await Functions.SeatPedInVehicle(targetPed, vehicle, seat);
+                            await Utils.WaitUntilPedIsInVehicle(targetPed, vehicle, seat);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    switch (item.Text)
+                    {
+                        default:
+                        {
+                            Utils.ShowNetworkedNotification("~p~This feature is not yet implemented!","Error","~m~NotImplementedException");
+                            break;
+                        }
+                    }
+                }
+            };
         }
 
         bool menuCooldown = false;
@@ -162,8 +236,8 @@ public class MenuHandler : BaseScript
                 menuCooldown = false;
                 while (allMenus.Contains(MenuController.GetCurrentMenu()))
                 {
-                    API.DrawMarker(27, targetPed.Position.X, targetPed.Position.Y, targetPed.Position.Z - 1f, 0f, 0f,
-                        0f, 0f, 0f, 0f, 1f, 1f, 1f, 66, 132, 245, 100, false, false, 2, true, null, null, false);
+                    //API.DrawMarker(27, targetPed.Position.X, targetPed.Position.Y, targetPed.Position.Z - 1f, 0f, 0f,
+                    //    0f, 0f, 0f, 0f, 1f, 1f, 1f, 66, 132, 245, 100, false, false, 2, true, null, null, false);
                     API.DrawMarker(20, targetPed.Position.X, targetPed.Position.Y, targetPed.Position.Z + 1.2f, 0f, 0f,
                         0f, 180f, 0f, 0f, 0.5f, 0.5f, 0.5f, 66, 132, 245, 80, true, true, 2, false, null, null, false);
                     await Delay(0);
